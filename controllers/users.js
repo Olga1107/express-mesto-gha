@@ -15,7 +15,7 @@ module.exports.getUser = (req, res, next) => {
   const { userId } = req.params;
   return User.findById(userId)
     .orFail(() => { throw new NotFound('Пользователь по указанному _id не найден'); })
-    .then((user) => res.send(user))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequest('Переданы некорректные данные'));
@@ -60,7 +60,7 @@ module.exports.updateUser = (req, res, next) => {
     },
   )
     .orFail(() => { throw new NotFound('Пользователь с указанным _id не найден'); })
-    .then((user) => res.send(user))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         next(new BadRequest('Переданы некорректные данные при обновлении профиля'));
@@ -81,7 +81,7 @@ module.exports.updateUserAvatar = (req, res, next) => {
     },
   )
     .orFail(() => { throw new NotFound('Пользователь с указанным _id не найден'); })
-    .then((user) => res.send(user))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         next(new BadRequest('Переданы некорректные данные при обновлении аватара'));
@@ -109,8 +109,6 @@ module.exports.login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-      res.cookie('token', token);
-      res.status(200).send({ token });
       res.send({ token });
     })
     .catch(next);

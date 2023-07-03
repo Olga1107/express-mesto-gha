@@ -11,8 +11,9 @@ module.exports.getCards = (req, res, next) => {
 
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
+  const owner = req.user._id;
 
-  Card.create({ name, link, owner: req.user._id })
+  Card.create({ name, link, owner })
     .then((card) => res.status(201).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -47,7 +48,7 @@ module.exports.putLike = (req, res, next) => {
     { new: true },
   )
     .orFail(() => { throw new NotFound('Передан несуществующий _id карточки'); })
-    .then((card) => res.status(200).send({ data: card }))
+    .then((card) => res.status(200).send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequest('Переданы некорректные данные для постановки лайка'));
@@ -70,7 +71,7 @@ module.exports.deleteLike = (req, res, next) => {
     .orFail(() => {
       throw new NotFound('Передан несуществующий _id карточки');
     })
-    .then((card) => res.status(200).send({ data: card }))
+    .then((card) => res.status(200).send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequest('Переданы некорректные данные для снятия лайка'));
