@@ -1,19 +1,30 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { configError } = require('../utils/configError');
 const User = require('../models/user');
+const NotFound = require('../errors/NotFoundError');
+const BadRequest = require('../errors/BadRequest');
+const ConflictError = require('../errors/ConflictError');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
-    .then((user) => res.send({ data: user }))
-    .catch((err) => configError(res, err));
+    .then((users) => res.send(users))
+    .catch(next);
 };
 
-module.exports.getUser = (req, res) => {
-  User.findById(req.params.userId)
+module.exports.getUser = (req, res, next) => {
+  const { userId } = req.params;
+  return User.findById(userId)
     .orFail(new Error('notValidId'))
-    .then((user) => res.send({ data: user }))
-    .catch((err) => configError(res, err));
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequest('Переданы некорректные данные'));
+      }
+      if (err.message === 'NotFound') {
+        next(new NotFound('Пользователь по указанному _id не найден'));
+      }
+      next(err);
+    });
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -24,17 +35,20 @@ module.exports.createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then(({
-      // eslint-disable-next-line no-shadow
-      name, about, avatar, email,
-    }) => res.status(201).send({
-      name, about, avatar, email,
+    .then(({ user }) => res.status(201).send({
+      name: user.name, about: user.about, avatar: user.avatar, email: user.email,
     }))
-    .catch((err) => configError(res, err))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        throw new BadRequest('Переданы некорректные данные при создании пользователя');
+      } else if (err.code === 11000) {
+        throw new ConflictError('Пользователь с таким email уже существует');
+      }
+    })
     .catch(next);
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -46,11 +60,16 @@ module.exports.updateUser = (req, res) => {
     },
   )
     .orFail(new Error('notValidId'))
-    .then((user) => res.send({ data: user }))
-    .catch((err) => configError(res, err));
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        throw new BadRequest('Переданы некорректные данные при обновлении профиля');
+      }
+    })
+    .catch(next);
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -62,17 +81,37 @@ module.exports.updateUserAvatar = (req, res) => {
     },
   )
     .orFail(new Error('notValidId'))
-    .then((user) => res.send({ data: user }))
-    .catch((err) => configError(res, err));
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
+        throw new BadRequest('Переданы некорректные данные при обновлении аватара');
+      }
+    })
+    .catch(next);
 };
 
-module.exports.login = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(() => {
+      throw new NotFound('Пользователь не найден');
+    })
+    .then((user) => res.status(200).send({ user }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        throw new BadRequest('Переданы некорректные данные');
+      } else if (err.message === 'NotFound') {
+        throw new NotFound('Пользователь не найден');
+      }
+    })
+    .catch(next);
+};
+
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-      res.cookie('token', token);
       res.send({ token });
     })
-    .catch((err) => configError(res, err));
+    .catch(next);
 };
