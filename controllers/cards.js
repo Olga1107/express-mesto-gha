@@ -25,7 +25,9 @@ module.exports.createCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   return Card.findByIdAndRemove(cardId)
-    .orFail(new Error('notValidId'))
+    .orFail(() => {
+      throw new NotFound('Карточка с указанным _id не найдена');
+    })
     .then((card) => {
       if (card.owner.toString() === req.user._id) {
         Card.findByIdAndRemove(cardId).then(() => res.status(200).send(card));
@@ -44,7 +46,7 @@ module.exports.putLike = (req, res, next) => {
     },
     { new: true },
   )
-    .orFail(new Error('notValidId'))
+    .orFail(() => { throw new NotFound('Передан несуществующий _id карточки'); })
     .then((card) => res.status(200).send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -65,7 +67,9 @@ module.exports.deleteLike = (req, res, next) => {
     },
     { new: true },
   )
-    .orFail(new Error('notValidId'))
+    .orFail(() => {
+      throw new NotFound('Передан несуществующий _id карточки');
+    })
     .then((card) => res.status(200).send({ data: card }))
     .catch((err) => {
       if (err.name === 'CastError') {
