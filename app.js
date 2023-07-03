@@ -23,10 +23,10 @@ app.post('/signin', validationLogin, login);
 app.post('/signup', validationCreateUser, createUser);
 
 app.use(auth);
-app.use(errors());
-app.use(handleError);
 app.use('/users', usersRout);
 app.use('/cards', cardsRout);
+app.use(errors());
+app.use(handleError);
 
 app.listen(PORT, (err) => {
   if (err) {
