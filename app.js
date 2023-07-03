@@ -24,17 +24,16 @@ app.post('/signup', validationCreateUser, createUser);
 
 app.use(auth);
 app.use(errors());
+app.use(handleError);
 app.use('/users', usersRout);
 app.use('/cards', cardsRout);
-
-app.use('/*', (req, res) => {
-  res.status(404).send({ message: '404 — запрашиваемый ресурс не найден' });
-});
-
-app.use(handleError);
 
 app.listen(PORT, (err) => {
   if (err) {
     console.log(`Ошибка на сервере ${PORT}`);
   }
+});
+
+app.use('/*', (req, res) => {
+  res.status(404).send({ message: '404 — запрашиваемый ресурс не найден' });
 });
