@@ -16,7 +16,7 @@ module.exports.getUser = (req, res) => {
     .catch((err) => configError(res, err));
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email,
   } = req.body;
@@ -24,8 +24,9 @@ module.exports.createUser = (req, res) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((user) => res.status(201).send({ data: user }))
-    .catch((err) => configError(res, err));
+    .then((user) => res.status(201).send(user))
+    .catch((err) => configError(res, err))
+    .catch(next);
 };
 
 module.exports.updateUser = (req, res) => {
