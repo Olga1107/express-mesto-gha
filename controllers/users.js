@@ -35,14 +35,14 @@ module.exports.createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then(({ user }) => res.status(201).send({
+    .then((user) => res.status(201).send({
       name: user.name, about: user.about, avatar: user.avatar, email: user.email,
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequest('Переданы некорректные данные при создании пользователя');
+        next(new BadRequest('Переданы некорректные данные при создании пользователя'));
       } else if (err.code === 11000) {
-        throw new ConflictError('Пользователь с таким email уже существует');
+        next(new ConflictError('Пользователь с таким email уже существует'));
       }
     })
     .catch(next);
@@ -63,7 +63,7 @@ module.exports.updateUser = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        throw new BadRequest('Переданы некорректные данные при обновлении профиля');
+        next(new BadRequest('Переданы некорректные данные при обновлении профиля'));
       }
     })
     .catch(next);
@@ -84,7 +84,7 @@ module.exports.updateUserAvatar = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        throw new BadRequest('Переданы некорректные данные при обновлении аватара');
+        next(new BadRequest('Переданы некорректные данные при обновлении аватара'));
       }
     })
     .catch(next);
@@ -93,14 +93,14 @@ module.exports.updateUserAvatar = (req, res, next) => {
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(() => {
-      throw new NotFound('Пользователь не найден');
+      next(new NotFound('Пользователь не найден'));
     })
     .then((user) => res.status(200).send({ user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        throw new BadRequest('Переданы некорректные данные');
+        next(new BadRequest('Переданы некорректные данные'));
       } else if (err.message === 'NotFound') {
-        throw new NotFound('Пользователь не найден');
+        next(new NotFound('Пользователь не найден'));
       }
     })
     .catch(next);
