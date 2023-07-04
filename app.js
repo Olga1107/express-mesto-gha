@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const { validationCreateUser, validationLogin } = require('./middlewares/validations');
 const auth = require('./middlewares/auth');
@@ -36,7 +35,6 @@ app.use('/cards', cardsRout);
 app.use('/*', (req, res, next) => {
   next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
-app.use(errors());
 app.use(handleError);
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
