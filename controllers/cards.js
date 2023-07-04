@@ -13,14 +13,15 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
 
-  return Card.create({ name, link, owner })
+  Card.create({ name, link, owner })
     .then((card) => res.status(201).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequest('Переданы некорректные данные при создании карточки'));
+        return;
       }
-    })
-    .catch(next);
+      next(err);
+    });
 };
 
 module.exports.deleteCard = (req, res, next) => {
@@ -52,9 +53,11 @@ module.exports.putLike = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequest('Переданы некорректные данные для постановки лайка'));
+        return;
       }
       if (err.message === 'NotFound') {
         next(new NotFound('Передан несуществующий _id карточки'));
+        return;
       }
       next(err);
     });
@@ -75,9 +78,11 @@ module.exports.deleteLike = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequest('Переданы некорректные данные для снятия лайка'));
+        return;
       }
       if (err.message === 'NotFound') {
         next(new NotFound('Передан несуществующий _id карточки'));
+        return;
       }
       next(err);
     });

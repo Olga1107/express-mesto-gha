@@ -33,7 +33,7 @@ app.post('/signup', validationCreateUser, createUser);
 app.use(auth);
 app.use('/users', usersRout);
 app.use('/cards', cardsRout);
-app.all((req, res, next) => {
+app.use('/*', (req, res, next) => {
   next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
 app.use(errors());
