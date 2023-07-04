@@ -15,9 +15,6 @@ const { NotFoundError } = require('./errors/NotFoundError');
 const { PORT = 3000 } = process.env;
 const app = express();
 
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
-});
-
 app.use(helmet());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -37,10 +34,13 @@ app.use(auth);
 app.use('/users', usersRout);
 app.use('/cards', cardsRout);
 app.use(errors());
-app.use('/*', (req, res, next) => {
+app.use('/', (req, res, next) => {
   next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
 app.use(handleError);
+
+mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
+});
 
 app.listen(PORT, (err) => {
   if (err) {
