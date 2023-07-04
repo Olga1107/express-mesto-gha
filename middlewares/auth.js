@@ -3,7 +3,7 @@ const AuthError = require('../errors/AuthError');
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
-  const JWT_SECRET = 'some-secret-key';
+  const { JWT_SECRET = 'some-secret-key' } = process.env;
   if (!authorization || !authorization.startsWith('Bearer ')) {
     throw new AuthError('Необходима авторизация');
   }

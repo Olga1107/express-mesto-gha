@@ -31,7 +31,7 @@ module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email,
   } = req.body;
-  bcrypt.hash(req.body.password, 8)
+  return bcrypt.hash(req.body.password, 8)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
@@ -51,7 +51,7 @@ module.exports.createUser = (req, res, next) => {
 module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
 
-  User.findByIdAndUpdate(
+  return User.findByIdAndUpdate(
     req.user._id,
     { name, about },
     {
@@ -72,7 +72,7 @@ module.exports.updateUser = (req, res, next) => {
 module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
-  User.findByIdAndUpdate(
+  return User.findByIdAndUpdate(
     req.user._id,
     { avatar },
     {
@@ -91,7 +91,8 @@ module.exports.updateUserAvatar = (req, res, next) => {
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
+  const { _id } = req.user;
+  return User.findById(_id)
     .orFail(() => { throw new NotFound('Пользователь не найден'); })
     .then((user) => res.status(200).send({ user }))
     .catch((err) => {
