@@ -4,9 +4,11 @@ const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { errors } = require('celebrate');
+const cors = require('./middlewares/cors');
 const { login, createUser } = require('./controllers/users');
 const { validationCreateUser, validationLogin } = require('./middlewares/validations');
 const auth = require('./middlewares/auth');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 const NotFoundError = require('./errors/NotFoundError');
 const handleError = require('./middlewares/handleError');
 const usersRout = require('./routes/users');
@@ -26,13 +28,15 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use(limiter);
-
+app.use(requestLogger);
+app.use(cors);
 app.post('/signin', validationLogin, login);
 app.post('/signup', validationCreateUser, createUser);
 
 app.use(auth);
 app.use('/users', usersRout);
 app.use('/cards', cardsRout);
+app.use(errorLogger);
 app.use(errors());
 app.use('/*', (req, res, next) => {
   next(new NotFoundError('Запрашиваемый ресурс не найден'));
