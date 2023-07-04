@@ -7,10 +7,10 @@ const { errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const { validationCreateUser, validationLogin } = require('./middlewares/validations');
 const auth = require('./middlewares/auth');
+const { NotFoundError } = require('./errors/NotFoundError');
 const handleError = require('./middlewares/handleError');
 const usersRout = require('./routes/users');
 const cardsRout = require('./routes/cards');
-const { NotFoundError } = require('./errors/NotFoundError');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -34,7 +34,7 @@ app.use(auth);
 app.use('/users', usersRout);
 app.use('/cards', cardsRout);
 app.use(errors());
-app.use('/', (req, res, next) => {
+app.use('/*', (req, res, next) => {
   next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
 app.use(handleError);
