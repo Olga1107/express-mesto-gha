@@ -33,10 +33,10 @@ app.post('/signup', validationCreateUser, createUser);
 app.use(auth);
 app.use('/users', usersRout);
 app.use('/cards', cardsRout);
-app.use(errors());
 app.use((req, res, next) => {
   next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
+app.use(errors());
 app.use(handleError);
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
