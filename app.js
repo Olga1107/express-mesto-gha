@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { errors } = require('celebrate');
-const cors = require('./middlewares/cors');
+const cors = require('cors');
 const { login, createUser } = require('./controllers/users');
 const { validationCreateUser, validationLogin } = require('./middlewares/validations');
 const auth = require('./middlewares/auth');
@@ -29,7 +29,12 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 app.use(requestLogger);
-app.use(cors);
+app.use(cors({
+  origin: [
+    'http://domainname.helga.nomoreparties.sbs',
+    'https://domainname.helga.nomoreparties.sbs',
+    'http://localhost:3000'],
+}));
 app.post('/signin', validationLogin, login);
 app.post('/signup', validationCreateUser, createUser);
 
